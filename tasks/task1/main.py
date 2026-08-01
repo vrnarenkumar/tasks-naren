@@ -2,12 +2,12 @@ import json
 import sys
 from pathlib import Path
 
-# config.py, graph.py, prompts.py live in the parent backend/ folder, and
-# parts_catalog.py lives in the sibling backend/task3/ folder — neither is
+# config.py, graph.py, prompts.py live in the top-level backend/ folder, and
+# parts_catalog.py lives in the sibling tasks/task3/ folder — neither is
 # a package, so both need to be added to sys.path before importing
-BACKEND_DIR = Path(__file__).resolve().parents[1]
-sys.path.append(str(BACKEND_DIR))
-sys.path.append(str(BACKEND_DIR / "task3"))
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+sys.path.append(str(PROJECT_ROOT / "backend"))
+sys.path.append(str(PROJECT_ROOT / "tasks" / "task3"))
 
 import phoenix as px
 from config import OLLAMA_MODEL

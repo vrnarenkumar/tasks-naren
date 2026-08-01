@@ -1,7 +1,7 @@
 VENV := $(CURDIR)/.venv
 PYTHON := $(shell command -v python3.12 || command -v python3)
 BACKEND := $(CURDIR)/backend
-TASK1 := $(BACKEND)/task1
+TASK1 := $(CURDIR)/tasks/task1
 MODEL := $(shell grep -E '^OLLAMA_MODEL=' $(TASK1)/.env 2>/dev/null | cut -d= -f2)
 MODEL := $(if $(MODEL),$(MODEL),llama3.2:3b)
 
