@@ -7,6 +7,9 @@ running a local LLM via Ollama, `frontend` is the React UI for it.
 I have the maintained a structure of deploying this code seamlessly. 
  **tasks** folder consists of the tasks that are assigned
  **backend** is for the backend integrated with the Websocket
+ **docs** has the tasks documentation
+ **frontend** has the frontend UI
+ **tests** for unit tests with pytest
 
 ## Running it
 
