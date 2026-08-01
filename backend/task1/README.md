@@ -46,12 +46,18 @@ hardware support is limited
 - A real frontend, connected to the existing `/ws/chat` for streaming
   responses.
 
-## Running the backend
+## Running it
+
+From the `tasks-naren` root:
 
 ```bash
-cd tasks-naren
-source .venv/bin/activate
-pip install -r task1/requirements.txt
-cd task1
-uvicorn main:app --port 8000
+make backend    # sets up the venv, installs Ollama and the model if missing, runs the API
+make frontend   # npm install + npm run dev, in a separate terminal
 ```
+
+`make backend` handles first-time setup on a clean machine: creates `.venv`
+if it doesn't exist, installs `backend/task1/requirements.txt`, installs
+Ollama via Homebrew if it's not already on the machine, starts it if it's
+not running, and pulls the model from `.env` (or `llama3.2:3b` by default)
+if it's not already pulled. Safe to re-run — every step is skipped if
+already done.

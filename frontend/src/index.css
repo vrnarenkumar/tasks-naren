@@ -1,0 +1,29 @@
+@import url("https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;600;700&display=swap");
+
+:root {
+  --bmw-blue: #0066b1;
+  --bmw-light-blue: #4b9fe1;
+  --bmw-black: #0d0d0d;
+  --bmw-panel: #17181c;
+  --bmw-white: #ffffff;
+  --bmw-border: #2a2c33;
+
+  font-family: "Titillium Web", "Segoe UI", sans-serif;
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background-color: var(--bmw-black);
+  color: var(--bmw-white);
+}
