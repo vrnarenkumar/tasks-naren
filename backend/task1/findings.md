@@ -55,9 +55,11 @@ make backend    # sets up the venv, installs Ollama and the model if missing, ru
 make frontend   # npm install + npm run dev, in a separate terminal
 ```
 
-`make backend` handles first-time setup on a clean machine: creates `.venv`
-if it doesn't exist, installs `backend/task1/requirements.txt`, installs
-Ollama via Homebrew if it's not already on the machine, starts it if it's
-not running, and pulls the model from `.env` (or `llama3.2:3b` by default)
-if it's not already pulled. Safe to re-run — every step is skipped if
-already done.
+`make backend` handles first-time setup on a clean machine: 
+ - creates `.venv`
+    - if it doesn't exist, installs `backend/task1/requirements.txt`, installs
+  
+  - Ollama via Homebrew if it's not already on the machine, starts it if it's
+    not running, and pulls the model from `.env` (or `llama3.2:3b` by default)
+    if it's not already pulled. Safe to re-run — every step is skipped if
+    already done.

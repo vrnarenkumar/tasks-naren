@@ -1,10 +1,33 @@
 import json
+import sys
+from pathlib import Path
 
-import httpx
+# config.py, graph.py, prompts.py live in the parent backend/ folder, and
+# parts_catalog.py lives in the sibling backend/task3/ folder — neither is
+# a package, so both need to be added to sys.path before importing
+BACKEND_DIR = Path(__file__).resolve().parents[1]
+sys.path.append(str(BACKEND_DIR))
+sys.path.append(str(BACKEND_DIR / "task3"))
+
+import phoenix as px
+from config import OLLAMA_MODEL
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
+from graph import build_graph, classify_message, to_lc_messages
+from langchain_core.messages import HumanMessage
+from parts_catalog import PartsCatalog
+from phoenix.otel import register
 
-from config import OLLAMA_MODEL, OLLAMA_URL
+DATA_PATH = Path(__file__).resolve().parents[2] / "docs" / "Parts.csv"
+
+# local trace UI at http://localhost:6006 — shows which graph node ran and
+# what each LLM call saw/returned, for every request. Best-effort: tracing
+# must never prevent the chatbot itself from starting.
+try:
+    px.launch_app()
+    register(project_name="parts-catalogue-chatbot", auto_instrument=True)
+except Exception as error:  # noqa: BLE001 - tracing must never block startup
+    print(f"Phoenix tracing unavailable, continuing without it: {error}")
 
 app = FastAPI()
 
@@ -16,42 +39,71 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+BASE_CATALOG = PartsCatalog.from_csv(DATA_PATH)
+
+STREAMABLE_NODES = {"catalog"}
+
 
 @app.get("/health")
 async def health():
-    return {"status": "ok", "model": OLLAMA_MODEL}
+    return {"status": "ok", "model": OLLAMA_MODEL, "parts_loaded": len(BASE_CATALOG.df)}
+
+
+async def handle_chat_message(
+    websocket: WebSocket, graph, catalog: PartsCatalog, history: list[dict], user_message: str
+) -> None:
+    """Run one turn through the graph, streaming the reply back token by token.
+
+    Retrieval/tool context lives only inside this graph run; `history` only
+    ever gets the plain user/assistant turns, so nothing from one turn leaks
+    into an unrelated later question.
+    """
+    # classify_message is cheap and deterministic (no LLM), so reporting the
+    # node type here — before the graph runs it again to actually branch —
+    # costs nothing but lets the client show it immediately, before the
+    # (possibly slow) LLM call even starts
+    node_label, _ = classify_message(user_message, catalog)
+    await websocket.send_text(f"[NODE:{node_label}]")
+
+    input_messages = to_lc_messages(history) + [HumanMessage(content=user_message)]
+    history.append({"role": "user", "content": user_message})
+
+    reply = ""
+    async for event in graph.astream_events({"messages": input_messages}, version="v2"):
+        if event["event"] == "on_chat_model_stream":
+            if event["metadata"].get("langgraph_node") not in STREAMABLE_NODES:
+                continue
+            token = event["data"]["chunk"].content
+            if token:
+                reply += token
+                await websocket.send_text(token)
+        elif event["event"] == "on_chain_end" and event.get("name") == "LangGraph":            
+            if not reply:
+                final_message = event["data"]["output"]["messages"][-1]
+                reply = final_message.content
+                await websocket.send_text(reply)
+
+    history.append({"role": "assistant", "content": reply})
+    await websocket.send_text("[DONE]")
 
 
 @app.websocket("/ws/chat")
 async def chat(websocket: WebSocket):
     await websocket.accept()
-    history = []
+    history: list[dict] = []
+    graph = build_graph(BASE_CATALOG)
 
     try:
         while True:
-            user_message = await websocket.receive_text()
-            history.append({"role": "user", "content": user_message})
+            raw_message = await websocket.receive_text()
+            try:
+                payload = json.loads(raw_message)
+            except json.JSONDecodeError:
+                payload = {"type": "message", "text": raw_message}
 
-            reply = ""
-            async with httpx.AsyncClient(timeout=None) as client:
-                async with client.stream(
-                    "POST",
-                    f"{OLLAMA_URL}/api/chat",
-                    json={"model": OLLAMA_MODEL, "messages": history, "stream": True},
-                ) as response:
-                    async for line in response.aiter_lines():
-                        if not line:
-                            continue
-                        chunk = json.loads(line)
-                        token = chunk.get("message", {}).get("content", "")
-                        if token:
-                            reply += token
-                            await websocket.send_text(token)
-                        if chunk.get("done"):
-                            break
-
-            history.append({"role": "assistant", "content": reply})
-            await websocket.send_text("[DONE]")
+            await handle_chat_message(
+                websocket, graph, BASE_CATALOG, history, payload.get("text", "")
+            )
 
     except WebSocketDisconnect:
         pass
