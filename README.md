@@ -6,6 +6,8 @@ running a local LLM via Ollama, `frontend` is the React UI for it.
 ## Running it
 
 ```bash
+Please visit this page to install Ollama https://ollama.com/download
+
 make backend    # sets up and runs the API on :8000
 make frontend   # installs deps and runs the UI on :5173
 ```

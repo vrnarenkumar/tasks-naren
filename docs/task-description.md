@@ -43,7 +43,8 @@ two tables.
 Task 3:
 The file “Parts.csv” contains descriptions of some fictitious parts. Your goal is to 
 find 5 alternative parts to each provided fictitious part in the dataset based on their 
-similarity. First provide descriptive analysis of the data and highlight 2-3 findings 
+similarity. 
+First provide descriptive analysis of the data and highlight 2-3 findings 
 and difficulties of the data that we provided and describe how you would handle this. 
 Continue to implement a solution that is finding the similar fictitious parts based on 
 the column “DESCRIPTION”. Please give details of your solution and why you choose it. 
