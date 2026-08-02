@@ -35,10 +35,8 @@ documentation, justify your selection of the model and packages. Ensure the repo
 remains local and not uploaded to any public platforms like GitHub.
 
 Task 2:
-This task is aiming to provide a ≈≈ of the column “Type”. 
-The dataset is provided in two different tables ("table_1.csv" and "table_2.csv") 
-with unique identifier of column “ID”. Tip: This column (ID) can be used to match the 
-two tables. 
+This task is aiming to provide a binary classification of the column “Type”. 
+The dataset is provided in two different tables ("table_1.csv" and "table_2.csv") with unique identifier of column “ID”. Tip: This column (ID) can be used to match the two tables. 
 
 Task 3:
 The file “Parts.csv” contains descriptions of some fictitious parts. Your goal is to 
