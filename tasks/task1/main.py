@@ -1,4 +1,5 @@
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -22,12 +23,14 @@ DATA_PATH = Path(__file__).resolve().parents[2] / "docs" / "Parts.csv"
 
 # local trace UI at http://localhost:6006 — shows which graph node ran and
 # what each LLM call saw/returned, for every request. Best-effort: tracing
-# must never prevent the chatbot itself from starting.
-try:
-    px.launch_app()
-    register(project_name="parts-catalogue-chatbot", auto_instrument=True)
-except Exception as error:  # noqa: BLE001 - tracing must never block startup
-    print(f"Phoenix tracing unavailable, continuing without it: {error}")
+# must never prevent the chatbot itself from starting. Set ENABLE_TRACING=false
+# to skip entirely (e.g. in the Cloud Run deployment, where 6006 isn't reachable).
+if os.environ.get("ENABLE_TRACING", "true").lower() == "true":
+    try:
+        px.launch_app()
+        register(project_name="parts-catalogue-chatbot", auto_instrument=True)
+    except Exception as error:  # noqa: BLE001 - tracing must never block startup
+        print(f"Phoenix tracing unavailable, continuing without it: {error}")
 
 app = FastAPI()
 

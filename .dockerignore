@@ -1,0 +1,10 @@
+frontend
+.venv
+__pycache__
+*.pyc
+.git
+screenshots
+.pytest_cache
+.ruff_cache
+tests
+.DS_Store

@@ -7,3 +7,5 @@ node_modules/
 */build/
 .env
 bmw_assignment
+# Local Netlify folder
+.netlify
